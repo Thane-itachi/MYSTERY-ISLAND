@@ -10,6 +10,9 @@
 # player_name = input("Enter your name: ")
 # print("Welcome to Mystery Island!")
 
+
+from game import create_game, collect_item, move_player, can_cross_bridge, can_light_beacon, win_game, lose_game
+
 print("==============================")
 print("     THE LOST LIGHTHOUSE")
 print("==============================")
@@ -20,16 +23,17 @@ while True:
     player_name = input("\nEnter your name: ")
 
 
-    current_location = "Beach"
+    # current_location = "Beach"
 
-    energy = 5
+    # energy = 5
 
-    inventory = []
+    # inventory = []
 
+
+    current_location, energy, inventory = create_game()
 
     print(f"\nWelcome to Mystery Island, {player_name}!")
-
-     # GAME LOOP
+    # GAME LOOP
     while True:
         print(f"\n========== {current_location.upper()} ==========")
         
@@ -42,7 +46,7 @@ while True:
         elif current_location == "Cave":
             print("You are inside a dark cave.")
     
-        elif current_location == "Old bridge":
+        elif current_location == "Old Bridge":
             print("You are standing on an old wooden bridge.")
     
         elif current_location == "Lighthouse":
@@ -72,8 +76,7 @@ while True:
     
                 print("\nYou search the beach.")
     
-                if "rope" not in inventory:
-                    inventory.append("rope")
+                if collect_item(inventory, "rope"):
                     print("You found a rope!")
                 else:
                     print("You already collected the rope.")
@@ -87,8 +90,7 @@ while True:
     
                 print("\nYou explore the dark cave.")
     
-                if "lantern" not in inventory:
-                    inventory.append("lantern")
+                if collect_item(inventory, "lantern"):
                     print("You found a lantern!")
                 else:
                     print("You already collected the lantern.")
@@ -127,129 +129,48 @@ while True:
     
             elif current_location == "Lighthouse":
                 print("You see the broken lighthouse beacon.")
-    
-        # MOVEMENT
-    
+    # MOVEMENT
+
         elif choice == "3":
-    
+
             if current_location == "Beach":
-    
                 print("\nAvailable destination: Jungle")
-                destination = input("Where do you want to go? ").strip().lower()
-    
-                if destination == "jungle":
-    
-                    if energy > 0:
-                        current_location = "Jungle"
-                        energy -= 1
-                        print("\nYou travelled to the Jungle!")
-    
-                    else:
-                        print("\nYou have no energy left.")
-    
-                else:
-                    print("\nYou cannot travel there.")
-    
+
             elif current_location == "Jungle":
-    
                 print("\nAvailable destinations: Beach, Cave")
-                destination = input("Where do you want to go? ").strip().lower()
-    
-                if destination == "beach" or destination == "cave":
-    
-                    if energy > 0:
-                        current_location = destination.capitalize()
-                        energy -= 1
-                        print(f"\nYou travelled to {current_location}!")
-    
-                    else:
-                        print("\nYou have no energy left.")
-    
-                else:
-                    print("\nInvalid destination.")
-    
+
             elif current_location == "Cave":
-    
                 print("\nAvailable destinations: Jungle, Old Bridge")
-                destination = input("Where do you want to go? ").strip().lower()
-    
-                if destination == "jungle":
-    
-                    if energy > 0:
-                        current_location = "Jungle"
-                        energy -= 1
-                        print("\nYou returned to the Jungle!")
-    
-                    else:
-                        print("\nYou have no energy left.")
-    
-                elif destination == "old bridge":
-    
-                    if "rope" not in inventory:
-                        print("\nYou need a rope to cross the bridge.")
-    
-                    elif energy > 0:
-                        current_location = "Old Bridge"
-                        energy -= 1
-                        print("\nYou crossed the Old Bridge!")
-    
-                    else:
-                        print("\nYou have no energy left.")
-    
-                else:
-                    print("\nInvalid destination.")
-    
+
             elif current_location == "Old Bridge":
-    
                 print("\nAvailable destinations: Cave, Lighthouse")
-                destination = input("Where do you want to go? ").strip().lower()
-    
-                if destination == "cave":
-    
-                    if energy > 0:
-                        current_location = "Cave"
-                        energy -= 1
-                        print("\nYou returned to the Cave!")
-    
-                    else:
-                        print("\nYou have no energy left.")
-    
-                elif destination == "lighthouse":
-    
-                    if energy > 0:
-                        current_location = "Lighthouse"
-                        energy -= 1
-                        print("\nYou reached the Lighthouse!")
-    
-                    else:
-                        print("\nYou have no energy left.")
-    
-                else:
-                    print("\nInvalid destination.")
-    
+
             elif current_location == "Lighthouse":
-    
-                print("\nYou are already at the Lighthouse.")
-                print("You can inspect the beacon or return to the bridge.")
-    
-                destination = input("Where do you want to go? ").strip().lower()
-    
-                if destination == "old bridge":
-    
-                    if energy > 0:
-                        current_location = "Old Bridge"
-                        energy -= 1
-                        print("\nYou returned to the Old Bridge!")
-    
-                    else:
-                        print("\nYou have no energy left.")
-    
+                print("\nAvailable destination: Old Bridge")
+
+            destination = input("Where do you want to go? ").strip().lower()
+
+            if current_location == "Cave" and destination == "old bridge" and not can_cross_bridge(inventory):
+                print("\nYou need a rope to cross the bridge.")
+
+            elif energy <= 0:
+                print("\nYou have no energy left.")
+
+            else:
+                current_location, energy, moved = move_player(
+                    current_location, destination, energy, inventory
+                )
+
+                if moved:
+                    print(f"\nYou travelled to {current_location}!")
+
                 else:
                     print("\nInvalid destination.")
+
     
             # ENERGY CHECK
     
-            if energy == 0:
+            if lose_game(energy):
                 print("\nYou have run out of energy!")
                 print("GAME OVER!")
                 break
@@ -274,7 +195,7 @@ while True:
     
                 print("\nYou must reach the Lighthouse first.")
     
-            elif "lantern" not in inventory:
+            elif not can_light_beacon(inventory):
     
                 print("\nYou need a lantern to light the beacon.")
     
@@ -282,7 +203,7 @@ while True:
     
                 print("\nYou are too exhausted to light the beacon.")
     
-            else:
+            elif win_game(current_location, inventory):
     
                 print("\nYou climb the lighthouse stairs.")
                 print("You use your lantern to restore the beacon.")
